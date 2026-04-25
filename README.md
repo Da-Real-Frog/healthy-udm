@@ -1,2 +1,2 @@
 # healthy-udm
-A utility that continuously cleans up a Unifi Dream Router to avoid performace issues
+A utility that continuously cleans up a Unifi Dream Machine to avoid performance issues
