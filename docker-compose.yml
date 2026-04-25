@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  udm-monitor:
+    build: .
+    container_name: healthy-udm
+    restart: unless-stopped
+    environment:
+      # UDM Credentials
+      - UDM_IP=192.168.5.1
+      - SSH_USER=root
+      - SSH_PASS=I am not telling you mine
+      
+      # Monitoring Thresholds
+      - ZOMBIE_THRESHOLD=10
+      - CHECK_INTERVAL_SECONDS=3600 # Checks once per hour
+      
+      # Email Alert Credentials (Optional: Leave blank to disable emails)
+      - SMTP_SERVER=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=your_email@gmail.com
+      - SMTP_PASS=your_app_password
+      - NOTIFY_EMAIL=where_to_send_alerts@domain.com
