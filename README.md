@@ -16,7 +16,7 @@ The brute-force solution is to reboot the entire router. However, a full reboot 
 
 1. **Monitors:** Connects to the UDM via SSH on a scheduled interval.
 2. **Analyzes:** Scans the Linux process table specifically for the count of zombie (`Z` state) processes.
-3. **Acts:** If the zombie count exceeds the defined threshold (default: 10), it executes `unifi-os restart`. This safely restarts the web UI and management services, clearing the locked resources **without** dropping the internet connection or internal network routing.
+3. **Acts:** If the zombie count exceeds the defined threshold (default: 2), it executes `unifi-os restart`. This safely restarts the web UI and management services, clearing the locked resources **without** dropping the internet connection or internal network routing.
 4. **Alerts:** Writes a record to the UDM's internal syslog and fires off an email notification to the administrator.
 
 ## 3. How to Test
