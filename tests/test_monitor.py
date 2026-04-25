@@ -14,7 +14,7 @@ class TestUDMMonitor(unittest.TestCase):
         monitor.UDM_IP = '192.168.1.1'
         monitor.SSH_USER = 'root'
         monitor.SSH_PASS = 'testpass'
-        monitor.ZOMBIE_THRESHOLD = 10
+        monitor.ZOMBIE_THRESHOLD = 2
         monitor.SMTP_SERVER = 'smtp.test.com'
         monitor.SMTP_USER = 'testuser'
         monitor.SMTP_PASS = 'testpass'

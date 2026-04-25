@@ -16,7 +16,7 @@ SMTP_USER = os.getenv('SMTP_USER')
 SMTP_PASS = os.getenv('SMTP_PASS')
 NOTIFY_EMAIL = os.getenv('NOTIFY_EMAIL')
 
-ZOMBIE_THRESHOLD = int(os.getenv('ZOMBIE_THRESHOLD', 10))
+ZOMBIE_THRESHOLD = int(os.getenv('ZOMBIE_THRESHOLD', 2))
 CHECK_INTERVAL_SECONDS = int(os.getenv('CHECK_INTERVAL_SECONDS', 3600)) # Default: 1 hour
 
 def send_email_alert(zombie_count):
