@@ -70,6 +70,8 @@ def check_udm_health():
             # 3. Send the email notification
             send_email_alert(zombie_count)
         else:
+            # 1. Add an entry to the UDM's own internal system log (syslog)
+            client.exec_command(f'logger -t healthy-udm "Detected {zombie_count} zombie processes. System health normal."')
             print("System health normal. No action required.")
 
     except Exception as e:
