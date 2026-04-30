@@ -26,8 +26,8 @@ def check_udm_health():
             look_for_keys=False,
             allow_agent=False
         )
-        print("User name:", SSH_USER)
-        print("password:", SSH_PASS)
+        print(f"User name:", SSH_USER)
+        print(f"password:", SSH_PASS)
         # Command to count zombie processes in Debian/UniFi OS
         stdin, stdout, stderr = client.exec_command("ps -eo stat | grep -c '^Z'")
         zombie_count = int(stdout.read().decode('utf-8').strip())
