@@ -17,10 +17,7 @@ def check_udm_health():
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
     try:
-        print(f"User name: {SSH_USER}")
-        print(f"password: {SSH_PASS}")
-        print(f"Let's go")
-        
+         
         print(f"Connecting to UDM at {UDM_IP}...")
         client.connect(
             hostname=UDM_IP,
