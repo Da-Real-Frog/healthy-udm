@@ -6,7 +6,7 @@ import paramiko
 # These are pulled from the docker-compose.yml environment variables
 UDM_IP = os.getenv('UDM_IP')
 SSH_USER = os.getenv('SSH_USER')
-SSH_PASS = os.getenv('SSH_PASS')
+#SSH_PASS = os.getenv('SSH_PASS')
 
 ZOMBIE_THRESHOLD = int(os.getenv('ZOMBIE_THRESHOLD', 2))
 CHECK_INTERVAL_SECONDS = int(os.getenv('CHECK_INTERVAL_SECONDS', 3600)) # Default: 1 hour
@@ -22,9 +22,9 @@ def check_udm_health():
         client.connect(
             hostname=UDM_IP,
             username=SSH_USER,
-            password=SSH_PASS,
+            #password=SSH_PASS,
             #timeout=10,
-            look_for_keys=False,
+            #look_for_keys=False,
             allow_agent=False
         )
         
