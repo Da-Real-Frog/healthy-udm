@@ -3,5 +3,7 @@ services:
     build: .
     container_name: healthy-udm
     restart: unless-stopped
+    volumes:
+      - ~/.ssh/id_ed25519:/app/ssh_key/id_ed25519:ro
     env_file:
       - .env
