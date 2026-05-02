@@ -4,6 +4,7 @@ services:
     container_name: healthy-udm
     restart: unless-stopped
     volumes:
-      - ~/.ssh/id_ed25519:/app/ssh_key/id_ed25519:ro
+      - ~/.ssh/id_ed25519:/app/ssh_key/id_ed25519:ro # Mount the SSH private key as read-only
     env_file:
-      - .env
+      - .env # Load environment variables from .env file
+      
