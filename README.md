@@ -4,15 +4,17 @@
 
 A lightweight, containerized Python service that monitors a UniFi Dream Machine (UDM) for process degradation and automatically safely restarts the management interface without dropping network traffic.
 
+Two symptoms of degradation are slow UI and mDNS not going across subnets anymore
+
 ## 1. The Problem
 
 Over time, the web interface of the UniFi Dream Machine can become extremely sluggish or unresponsive. This is often accompanied by an accumulation of "zombie" processes (processes that have completed execution but still have an entry in the process table) and locked memory resources, typically stemming from the Java-based `unifi-os` controller software.
 
-The brute-force solution is to reboot the entire router. However, a full reboot drops the internet connection, flushes routing tables, and breaks cross-subnet traffic (like mDNS). 
+The brute-force solution is to reboot the entire router. However, a full reboot drops the internet connection, flushes routing tables, and breaks cross-subnet traffic. 
 
 ## 2. The Approach
 
-`healthy-udm` takes a surgical approach to router maintenance. Instead of a full reboot, it operates as an isolated Docker container that performs the following automated loop:
+`healthy-udm` takes a nicer approach to router maintenance. Instead of a full reboot, it operates as an isolated Docker container that performs the following automated loop:
 
 1. **Monitors:** Connects to the UDM via SSH on a scheduled interval.
 2. **Analyzes:** Scans the Linux process table specifically for the count of zombie (`Z` state) processes.
@@ -31,3 +33,6 @@ To run the tests locally:
 
 ```bash
 python3 -m unittest discover -s tests
+
+## 4. Authentication nightmares
+#The UDM is a bit weird when it come sto ssh access and teh only way that works both locally (under OSX) and in prod ((Ubuntu) was top use ssh keys )
