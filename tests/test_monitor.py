@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 import os
 import sys
+import socket
 
 # Add the parent directory to the path so it can find monitor.py
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -17,34 +18,31 @@ class TestUDMMonitor(unittest.TestCase):
         monitor.ZOMBIE_THRESHOLD = 2
 
     @patch('monitor.paramiko.SSHClient')
-    @patch('monitor.socket')
-    def test_health_normal_no_action(self, mock_socket, mock_ssh_client):
-        # Mock socket
-        mock_socket_instance = MagicMock()
-        mock_socket.return_value = mock_socket_instance
-        mock_socket_instance.getsockname.return_value = ('192.168.1.100', 12345)
+    @patch('monitor.socket.create_connection')
+    def test_health_normal_no_action(self, mock_create_connection, mock_ssh_client):
+        # Mock reachability
+        mock_create_connection.return_value = MagicMock()
         mock_ssh_instance = MagicMock()
         mock_ssh_client.return_value = mock_ssh_instance
         
         # Fake the stdout from the 'ps' command
         mock_stdout = MagicMock()
-        mock_stdout.read.return_value = b'2\n'
+        mock_stdout.read.return_value = b'1\n'
         mock_ssh_instance.exec_command.return_value = (None, mock_stdout, None)
 
-        # 2. EXECUTE: Run our health check
+        # Execute: Run our health check
         monitor.check_udm_health()
 
-        # 3. ASSERT: Prove that it did NOT try to restart the UDM
-        # It should only call exec_command once (to check the count)
-        self.assertEqual(mock_ssh_instance.exec_command.call_count, 1)
+        # Assert: It should check the zombie count and log normal health, but not restart
+        self.assertEqual(mock_ssh_instance.exec_command.call_count, 2)
+        mock_ssh_instance.exec_command.assert_any_call('logger -t healthy-udm "Detected 1 zombie processes. System health normal."')
+        mock_create_connection.assert_called_once_with(('192.168.1.1', 22), timeout=2)
 
     @patch('monitor.paramiko.SSHClient')
-    @patch('monitor.socket')
-    def test_health_threshold_exceeded_triggers_restart(self, mock_socket, mock_ssh_client):
-        # Mock socket
-        mock_socket_instance = MagicMock()
-        mock_socket.return_value = mock_socket_instance
-        mock_socket_instance.getsockname.return_value = ('192.168.1.100', 12345)
+    @patch('monitor.socket.create_connection')
+    def test_health_threshold_exceeded_triggers_restart(self, mock_create_connection, mock_ssh_client):
+        # Mock reachability
+        mock_create_connection.return_value = MagicMock()
         mock_ssh_instance = MagicMock()
         mock_ssh_client.return_value = mock_ssh_instance
         
@@ -52,14 +50,27 @@ class TestUDMMonitor(unittest.TestCase):
         mock_stdout.read.return_value = b'15\n'
         mock_ssh_instance.exec_command.return_value = (None, mock_stdout, None)
 
-        # 2. EXECUTE: Run the health check
+        # Execute: Run the health check
         monitor.check_udm_health()
 
-        # 3. ASSERT: Prove it ran the restart commands
-        self.assertEqual(mock_ssh_instance.exec_command.call_count, 2) # 1 check + 1 log + 1 restart
-        
-        # Verify the specific restart command was issued
+        # Assert: It checked the count, logged the problem, and restarted the service
+        self.assertEqual(mock_ssh_instance.exec_command.call_count, 3)
         mock_ssh_instance.exec_command.assert_any_call('unifi-os restart')
+
+    @patch('monitor.paramiko.SSHClient')
+    @patch('monitor.socket.create_connection')
+    def test_unreachable_udm_skips_health_check(self, mock_create_connection, mock_ssh_client):
+        # Simulate unreachable UDM SSH port
+        mock_create_connection.side_effect = socket.timeout
+        mock_ssh_instance = MagicMock()
+        mock_ssh_client.return_value = mock_ssh_instance
+
+        monitor.check_udm_health()
+
+        # Assert: no SSH connection attempt or exec_command calls were made
+        mock_ssh_instance.connect.assert_not_called()
+        mock_ssh_instance.exec_command.assert_not_called()
+        mock_create_connection.assert_called_once_with(('192.168.1.1', 22), timeout=2)
 
 if __name__ == '__main__':
     unittest.main()

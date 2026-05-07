@@ -16,7 +16,7 @@ The brute-force solution is to reboot the entire router. However, a full reboot 
 
 `healthy-udm` takes a nicer approach to router maintenance. Instead of a full reboot, it operates as an isolated Docker container that performs the following automated loop:
 
-1. **Checks Network:** Verifies that the utility is running on the same IPv4 subnet as the UDM to ensure connectivity (assumes /24 subnet mask).
+1. **Checks Network:** Verifies that the utility is running on the same IPv4 subnet as the UDM to ensure connectivity (assumes /24 subnet mask), and performs a reachability test by probing the UDM's SSH port before attempting any SSH work.
 2. **Monitors:** Connects to the UDM via SSH on a scheduled interval.
 3. **Analyzes:** Scans the Linux process table specifically for the count of zombie (`Z` state) processes.
 4. **Acts:** If the zombie count exceeds the defined threshold (default: 2), it executes `unifi-os restart`. This safely restarts the web UI and management services, clearing the locked resources **without** dropping the internet connection or internal network routing.
@@ -26,6 +26,8 @@ The brute-force solution is to reboot the entire router. However, a full reboot 
 
 This project includes a suite of unit tests using Python's `unittest` framework. The tests use "mocking" to simulate the SSH connection and Mail server, meaning **you can run these tests safely without accidentally restarting your real UDM.**
 
+It also includes a reachability test: before opening the SSH connection, the monitor checks whether the UDM's SSH port is reachable and skips the health check if it is not.
+
 To run the tests locally:
 
 1. Clone the repository to your machine.
@@ -34,6 +36,10 @@ To run the tests locally:
 
 ```bash
 python3 -m unittest discover -s tests
+```
 
 ## 4. Authentication nightmares
 #The UDM is a bit weird when it come sto ssh access and teh only way that works both locally (under OSX) and in prod ((Ubuntu) was top use ssh keys )
+
+## 5. Security hint
+Do not run thsi on amachine/sever that is exposed to the INternet and is therefore vulnerable - I am running this on my main laptop using Docker desktop, which is also why i implemented the recahability check, so that if I am at acoffee shop, I do not wait for the thingy to time out
