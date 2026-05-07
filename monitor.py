@@ -1,6 +1,7 @@
 import os
 import time
 import paramiko
+import socket
 
 # --- Configuration Variables ---
 # These are pulled from the docker-compose.yml environment variables
@@ -11,8 +12,27 @@ KEY_FILENAME = "/app/ssh_key/id_ed25519"  # Path to the SSH private key inside t
 ZOMBIE_THRESHOLD = int(os.getenv('ZOMBIE_THRESHOLD', 2))
 CHECK_INTERVAL_SECONDS = int(os.getenv('CHECK_INTERVAL_SECONDS', 3600)) # Default: 1 hour
 
+def is_udm_reachable(udm_ip):
+    """
+    Checks if the UDM's SSH port is open and responding.
+    """
+    try:
+        # Attempts a quick TCP handshake
+        with socket.create_connection((udm_ip, 22), timeout=2):
+            return True
+    except (socket.timeout, ConnectionRefusedError, OSError):
+        return False
+
 def check_udm_health():
-    """Connects to UDM, checks for zombies, and restarts services if needed."""
+    """
+    Connects to UDM, checks for zombies, and restarts services if needed.
+     - If the UDM is not reachable, it logs an error and skips the check."""
+
+    if not is_udm_reachable(UDM_IP):
+        print(f"UDM at {UDM_IP} is not reachable.")
+        return
+    else:
+        print(f"UDM at {UDM_IP} is reachable. Proceeding with health check.")
 
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
