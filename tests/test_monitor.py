@@ -17,8 +17,12 @@ class TestUDMMonitor(unittest.TestCase):
         monitor.ZOMBIE_THRESHOLD = 2
 
     @patch('monitor.paramiko.SSHClient')
-    def test_health_normal_no_action(self, mock_ssh_client):
-        # 1. SETUP: Fake an SSH connection that returns exactly 2 zombies
+    @patch('monitor.socket')
+    def test_health_normal_no_action(self, mock_socket, mock_ssh_client):
+        # Mock socket
+        mock_socket_instance = MagicMock()
+        mock_socket.return_value = mock_socket_instance
+        mock_socket_instance.getsockname.return_value = ('192.168.1.100', 12345)
         mock_ssh_instance = MagicMock()
         mock_ssh_client.return_value = mock_ssh_instance
         
@@ -35,8 +39,12 @@ class TestUDMMonitor(unittest.TestCase):
         self.assertEqual(mock_ssh_instance.exec_command.call_count, 1)
 
     @patch('monitor.paramiko.SSHClient')
-    def test_health_threshold_exceeded_triggers_restart(self, mock_ssh_client):
-        # 1. SETUP: Fake an SSH connection that returns 15 zombies (Above threshold)
+    @patch('monitor.socket')
+    def test_health_threshold_exceeded_triggers_restart(self, mock_socket, mock_ssh_client):
+        # Mock socket
+        mock_socket_instance = MagicMock()
+        mock_socket.return_value = mock_socket_instance
+        mock_socket_instance.getsockname.return_value = ('192.168.1.100', 12345)
         mock_ssh_instance = MagicMock()
         mock_ssh_client.return_value = mock_ssh_instance
         
@@ -53,4 +61,6 @@ class TestUDMMonitor(unittest.TestCase):
         # Verify the specific restart command was issued
         mock_ssh_instance.exec_command.assert_any_call('unifi-os restart')
 
-    if __name__ == '__main__':
+if __name__ == '__main__':
+    unittest.main()
+
