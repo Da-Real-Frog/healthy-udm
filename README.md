@@ -16,10 +16,11 @@ The brute-force solution is to reboot the entire router. However, a full reboot 
 
 `healthy-udm` takes a nicer approach to router maintenance. Instead of a full reboot, it operates as an isolated Docker container that performs the following automated loop:
 
-1. **Monitors:** Connects to the UDM via SSH on a scheduled interval.
-2. **Analyzes:** Scans the Linux process table specifically for the count of zombie (`Z` state) processes.
-3. **Acts:** If the zombie count exceeds the defined threshold (default: 2), it executes `unifi-os restart`. This safely restarts the web UI and management services, clearing the locked resources **without** dropping the internet connection or internal network routing.
-4. **Alerts:** Writes a record to the UDM's internal syslog and fires off an email notification to the administrator.
+1. **Checks Network:** Verifies that the utility is running on the same IPv4 subnet as the UDM to ensure connectivity (assumes /24 subnet mask).
+2. **Monitors:** Connects to the UDM via SSH on a scheduled interval.
+3. **Analyzes:** Scans the Linux process table specifically for the count of zombie (`Z` state) processes.
+4. **Acts:** If the zombie count exceeds the defined threshold (default: 2), it executes `unifi-os restart`. This safely restarts the web UI and management services, clearing the locked resources **without** dropping the internet connection or internal network routing.
+5. **Alerts:** Writes a record to the UDM's internal syslog and fires off an email notification to the administrator.
 
 ## 3. How to Test
 
