@@ -2,6 +2,8 @@
 
 # Healthy UDM (UniFi Dream Machine Monitor)
 
+Well, it seems that recent Unifi OS made the repeated zombies go away! So this is now useless, but was a good learning exercise
+
 A lightweight, containerized Python service that monitors a UniFi Dream Machine (UDM) for process degradation and automatically safely restarts the management interface without dropping network traffic.
 
 Two symptoms of degradation are slow UI and mDNS not going across subnets anymore
