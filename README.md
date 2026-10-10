@@ -1,47 +1,41 @@
-# healthy-udm
+# udm-ssh-toolkit
 
-# Healthy UDM (UniFi Dream Machine Monitor)
+Two small shell scripts for a **UniFi Dream Machine** (UDM / UniFi OS) that work over plain SSH with your key, so there's no UniFi login, API token or MFA prompt.
 
-Well, it seems that recent Unifi OS made the repeated zombies go away! So this is now useless, but was a good learning exercise
+| Script | What it does | Changes anything? |
+|---|---|---|
+| [`scripts/collect-remote.sh`](scripts/collect-remote.sh) | Takes a full read-only snapshot of the gateway and the UniFi Network database, with secrets redacted | No |
+| [`scripts/forget-stale-clients.sh`](scripts/forget-stale-clients.sh) | "Forgets" clients the controller hasn't seen for N days, to clean up the client list | Only with `APPLY=1` |
 
-A lightweight, containerized Python service that monitors a UniFi Dream Machine (UDM) for process degradation and automatically safely restarts the management interface without dropping network traffic.
+Both scripts run **on the UDM** but are piped in from your own machine, so nothing needs to be copied to the device:
 
-Two symptoms of degradation are slow UI and mDNS not going across subnets anymore
-
-## 1. The Problem
-
-Over time, the web interface of the UniFi Dream Machine can become extremely sluggish or unresponsive. This is often accompanied by an accumulation of "zombie" processes (processes that have completed execution but still have an entry in the process table) and locked memory resources, typically stemming from the Java-based `unifi-os` controller software.
-
-The brute-force solution is to reboot the entire router. However, a full reboot drops the internet connection, flushes routing tables, and breaks cross-subnet traffic. 
-
-## 2. The Approach
-
-`healthy-udm` takes a nicer approach to router maintenance. Instead of a full reboot, it operates as an isolated Docker container that performs the following automated loop:
-
-1. **Checks Network:** Verifies that the utility is running on the same IPv4 subnet as the UDM to ensure connectivity (assumes /24 subnet mask), and performs a reachability test by probing the UDM's SSH port before attempting any SSH work.
-2. **Monitors:** Connects to the UDM via SSH on a scheduled interval.
-3. **Analyzes:** Scans the Linux process table specifically for the count of zombie (`Z` state) processes.
-4. **Acts:** If the zombie count exceeds the defined threshold (default: 2), it executes `unifi-os restart`. This safely restarts the web UI and management services, clearing the locked resources **without** dropping the internet connection or internal network routing.
-5. **Alerts:** Writes a record to the UDM's internal syslog and fires off an email notification to the administrator.
-
-## 3. How to Test
-
-This project includes a suite of unit tests using Python's `unittest` framework. The tests use "mocking" to simulate the SSH connection and Mail server, meaning **you can run these tests safely without accidentally restarting your real UDM.**
-
-It also includes a reachability test: before opening the SSH connection, the monitor checks whether the UDM's SSH port is reachable and skips the health check if it is not.
-
-To run the tests locally:
-
-1. Clone the repository to your machine.
-2. Ensure you have Python 3 installed.
-3. Navigate to the project root directory and run:
-
-```bash
-python3 -m unittest discover -s tests
+```sh
+ssh root@unifi 'sh -s'   < scripts/collect-remote.sh > udm.txt 2> udm.stderr.txt
+ssh root@unifi 'bash -s' < scripts/forget-stale-clients.sh          # dry run
 ```
 
-## 4. Authentication nightmares
-#The UDM is a bit weird when it come sto ssh access and teh only way that works both locally (under OSX) and in prod ((Ubuntu) was top use ssh keys )
+Here `unifi` is whatever hostname or IP reaches your UDM over SSH.
 
-## 5. Security hint
-Do not run thsi on amachine/sever that is exposed to the INternet and is therefore vulnerable - I am running this on my main laptop using Docker desktop, which is also why i implemented the recahability check, so that if I am at acoffee shop, I do not wait for the thingy to time out
+## Requirements
+
+- SSH enabled on the console (UniFi OS → Console Settings → SSH), with key-based login for `root`.
+- The UniFi Network app's local MongoDB, which is on port 27117 by default, and a `mongo` or `mongosh` shell on the device. The scripts detect which one is present.
+- Tested on a **UDM running UniFi OS 5.1.33 with UniFi Network 10.6.106**. Other UniFi OS consoles (UDM Pro, UDM SE, UDR, UCG) use the same layout and should work, but haven't been tested.
+
+## Documentation
+
+- [docs/collect-remote.md](docs/collect-remote.md): what's collected, the output format, redaction, and how to check for leaks.
+- [docs/forget-stale-clients.md](docs/forget-stale-clients.md): how the cleanup decides, the dry run, backup and restore.
+
+## Caveats
+
+- `forget-stale-clients.sh` edits the Network app's database directly and then restarts the app. Ubiquiti doesn't support this. Routing and Wi-Fi keep working, but the UniFi UI is down for 1–2 minutes. **Take a backup first.**
+- `collect-remote.sh` redacts secrets by field name. Always skim the output (see the docs) before you share it.
+
+## Previous project
+
+This repository used to hold *healthy-udm*, a Python monitor for zombie processes on the UDM. Recent UniFi OS releases fixed that problem, so it was retired. The old code is kept at the [`legacy-zombie-monitor`](https://github.com/Da-Real-Frog/healthy-udm/tree/legacy-zombie-monitor) tag.
+
+## License
+
+[MIT](LICENSE)
