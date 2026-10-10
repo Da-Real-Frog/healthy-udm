@@ -34,7 +34,7 @@ Here `unifi` is whatever hostname or IP reaches your UDM over SSH.
 
 ## Previous project
 
-This repository used to hold *healthy-udm*, a Python monitor for zombie processes on the UDM. Recent UniFi OS releases fixed that problem, so it was retired. The old code is kept at the [`legacy-zombie-monitor`](https://github.com/Da-Real-Frog/healthy-udm/tree/legacy-zombie-monitor) tag.
+This repository used to hold *healthy-udm*, a Python monitor for zombie processes on the UDM. Recent UniFi OS releases fixed that problem, so it was retired. The old code is kept at the [`legacy-zombie-monitor`](https://github.com/Da-Real-Frog/healthy-udm/tree/legacy-zombie-monitor) branch.
 
 ## License
 
